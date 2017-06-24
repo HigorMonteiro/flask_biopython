@@ -1,6 +1,14 @@
 *.py[cod]
 *.cfg
-
+app/uploads/
+uploads
+*.fasta
+*.pyc
+*.env
+env
+__pycache__
+/__pycache_
+/__pycache__/_
 # C extensions
 *.so
 
