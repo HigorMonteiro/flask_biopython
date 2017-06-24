@@ -1,3 +1,8 @@
-<h1> essa e a danada da proteina
-{{proteina}}
-</h1>
+{% extends 'base.html'%}
+
+{% block content %}
+<div class="jumbotron">
+  <p>A proteína que obtemos foi : {{proteina}}</p>
+</div>
+
+{% endblock%}
