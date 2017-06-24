@@ -3,9 +3,11 @@ from flask import (url_for, redirect, render_template,
                    request, send_from_directory)
 from werkzeug import secure_filename
 from Bio import SeqIO
+from Bio.Alphabet import IUPAC
+from Bio.Seq import Seq
 from app import app
 
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = 'app/uploads'
 ALLOWED_EXTENSIONS = set(
     ['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'fasta']
 )
@@ -13,23 +15,25 @@ ALLOWED_EXTENSIONS = set(
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-# @app.route("/index")
-# @app.route("/")
-# def index():
-#     return render_template('index.html')
+@app.route("/index")
+@app.route("/")
+def index():
+    return render_template('index.html')
 
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    for i in SeqIO.parse(('uploads/%s' % filename), 'fasta'):
-        print(i.id, i.seq)
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
+def handle_fa(filename):
+    fa = SeqIO.parse(filename, 'fasta')
+    for i in fa:
+        dna = str(i.seq)
+        rna = Seq(dna, IUPAC.unambiguous_dna)
+        proteina = rna.translate()
+        print('Sequência de DNA : %s' % rna )
+        print('Proteina: %s' % proteina)
+    return render_template('proteina.html', proteina=proteina)
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -45,9 +49,9 @@ def upload_file():
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
+
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
-                                    filename=filename))
+            return handle_fa(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return render_template('index.html')
